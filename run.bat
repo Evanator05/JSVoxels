@@ -1,1 +1,1 @@
-index.html --allow-file-access-from-files
+"C:\Program Files\Google\Chrome\Application\chrome.exe" "C:\Users\watso\Desktop\Voxels\index.html" "--allow-file-access-from-files"

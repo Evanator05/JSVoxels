@@ -7,9 +7,9 @@ async function main() {
   const gl = canvas.getContext("webgl2");
 
   const triangleVerts = [
-    -3, -1,// bottom left
-    0, 3, // top left
-    3, -1, // bottom right
+    -1, -3,// bottom left
+    -1, 1, // top left
+    3, 1, // top right
   ];
   
   const triangleCPUBuffer = new Float32Array(triangleVerts);
@@ -86,7 +86,7 @@ async function main() {
     0 // how many bytes do we skip before reading attib
   );
   
-  gl.uniform4f(screenSizeUniformLocation, canvas.width, canvas.height, 1/canvas.width, 1/canvas.height); // give fragment shader the screensize
+  gl.uniform3f(screenSizeUniformLocation, 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
 
   // draw call (also configures primitives)
   gl.drawArrays(gl.TRIANGLES, 0, 3)
