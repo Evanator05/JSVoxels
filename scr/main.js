@@ -62,6 +62,10 @@ async function main() {
     return;
   }
   
+  function getUni(uniform) {
+    return gl.getUniformLocation(mainShaderProgram, uniform)
+  }
+
   // Output merger
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
@@ -86,7 +90,7 @@ async function main() {
     0 // how many bytes do we skip before reading attib
   );
   
-  gl.uniform3f(screenSizeUniformLocation, 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
+  gl.uniform3f(getUni("screenSize"), 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
 
   // draw call (also configures primitives)
   gl.drawArrays(gl.TRIANGLES, 0, 3)
