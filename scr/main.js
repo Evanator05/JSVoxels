@@ -1,0 +1,95 @@
+async function getText(path) {
+  return (await fetch(path).then(r => r.text()))
+}
+
+async function main() {
+  const canvas = document.getElementById("canvas")
+  const gl = canvas.getContext("webgl2");
+
+  const triangleVerts = [
+    -3, -1,// bottom left
+    0, 3, // top left
+    3, -1, // bottom right
+  ];
+  
+  const triangleCPUBuffer = new Float32Array(triangleVerts);
+
+  const triangleGPUBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, triangleGPUBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, triangleCPUBuffer, gl.STATIC_DRAW);
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+  const vertexShaderSource = await getText("./scr/renderer/vertex.glsl");
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, vertexShaderSource);
+  gl.compileShader(vertexShader);
+  if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+    const compileError = gl.getShaderInfoLog(vertexShader);
+    console.log(compileError);
+    return;
+  }
+
+  const fragmentShaderSource = await getText("./scr/renderer/fragment.glsl");
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, fragmentShaderSource);
+  gl.compileShader(fragmentShader);
+  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+    const compileError = gl.getShaderInfoLog(fragmentShader);
+    console.log(compileError);
+    return;
+  }
+
+  const mainShaderProgram = gl.createProgram();
+  gl.attachShader(mainShaderProgram, vertexShader);
+  gl.attachShader(mainShaderProgram, fragmentShader);
+  gl.linkProgram(mainShaderProgram);
+
+  if (!gl.getProgramParameter(mainShaderProgram, gl.LINK_STATUS)) {
+    const linkError = gl.getProgramInfoLog(mainShaderProgram);
+    console.log(linkError);
+    return;
+  }
+
+  const vertexPositionAttribLocation = gl.getAttribLocation(mainShaderProgram, "vertexPosition");
+  if (vertexPositionAttribLocation < 0) {
+    console.log("Failed to get attrib location for vertexPosition");
+    return;
+  }
+
+  const screenSizeUniformLocation = gl.getUniformLocation(mainShaderProgram, "screenSize");
+  if (screenSizeUniformLocation < 0) {
+    console.log("Failed to get uniform location for screenSize");
+    return;
+  }
+  
+  // Output merger
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  
+  // Rasterizer
+  gl.viewport(0, 0, canvas.width, canvas.height);
+
+  //setup gpu program
+  gl.useProgram(mainShaderProgram);
+  gl.enableVertexAttribArray(vertexPositionAttribLocation);
+
+  // Input assembler
+  gl.bindBuffer(gl.ARRAY_BUFFER, triangleGPUBuffer);
+  gl.vertexAttribPointer(
+    vertexPositionAttribLocation, // which attrib to use
+    2, // how many components in the attrib
+    gl.FLOAT, // what type of data are we sending over
+    false, // should we normalize the data
+    2*Float32Array.BYTES_PER_ELEMENT, // how many bytes forward do we skip before we get the next position in buffer (0 makes gpu figure it out)
+    0 // how many bytes do we skip before reading attib
+  );
+  
+  gl.uniform4f(screenSizeUniformLocation, canvas.width, canvas.height, 1/canvas.width, 1/canvas.height); // give fragment shader the screensize
+
+  // draw call (also configures primitives)
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+}
+
+main();
