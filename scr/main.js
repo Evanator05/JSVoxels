@@ -19,26 +19,24 @@ async function main() {
   gl.bufferData(gl.ARRAY_BUFFER, triangleCPUBuffer, gl.STATIC_DRAW);
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-  const vertexShaderSource = await getText("./scr/renderer/vertex.glsl");
-  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, vertexShaderSource);
-  gl.compileShader(vertexShader);
-  if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-    const compileError = gl.getShaderInfoLog(vertexShader);
-    console.log(compileError);
-    return;
+  async function compileShader(source, type) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      const compileError = gl.getShaderInfoLog(shader);
+      console.log(compileError);
+      return;
+    }
+    return shader
   }
+
+  const vertexShaderSource = await getText("./scr/renderer/vertex.glsl");
+  const vertexShader = await compileShader(vertexShaderSource, gl.VERTEX_SHADER);
 
   const fragmentShaderSource = await getText("./scr/renderer/fragment.glsl");
-  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, fragmentShaderSource);
-  gl.compileShader(fragmentShader);
-  if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-    const compileError = gl.getShaderInfoLog(fragmentShader);
-    console.log(compileError);
-    return;
-  }
-
+  const fragmentShader = await compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
+  
   const mainShaderProgram = gl.createProgram();
   gl.attachShader(mainShaderProgram, vertexShader);
   gl.attachShader(mainShaderProgram, fragmentShader);
