@@ -1,10 +1,7 @@
-#version 300 es
-precision highp float; // high floating point precision
-
 out vec4 outputColor;
 
 const int maxIterations = 80;
-const float maxDist = 150.0;
+const float maxDist = 10.0;
 
 uniform vec3 screenSize; // 1/width, 1/height, aspect ratio
 
@@ -36,16 +33,20 @@ void main() {
 
     vec3 color = vec3(0.0);
 
-    Ray ray = Ray(vec3(0.0), normalize(vec3(UV, 1.0)), 0.0, 0);
+    vec3 dir = rotateVector(normalize(vec3(UV, 1.0)), cameraRot);
+
+    Ray ray = Ray(cameraPos, dir, 0.0, 0);
 
     for (int i=0;i<maxIterations;i++){
         float dist = sdBox(ray.position-vec3(2.0, -2.0, 5.0), vec3(1.0));
-        ray = march(ray, dist);
-
+        
         if (dist < 0.00001) {
             color = vec3(1.0);
             break;
         }
+
+        ray = march(ray, dist);
+        
         if (ray.dist > maxDist) {
             break;
         }
