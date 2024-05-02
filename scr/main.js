@@ -11,6 +11,8 @@ async function buildFragmentShader() {
   return shader;
 }
 
+
+
 async function main() {
   const canvas = document.getElementById("canvas")
   const gl = canvas.getContext("webgl2");
@@ -98,8 +100,44 @@ async function main() {
   );
   
   gl.uniform3f(getUni("screenSize"), 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
-  gl.uniform3f(getUni("cameraPos"), 1, -15, 0);
-  gl.uniform2f(getUni("cameraRot"), 0.0, -45);
+  gl.uniform3f(getUni("cameraPos"), -2, 12, -2);
+  gl.uniform2f(getUni("cameraRot"), -45.0, -45);
+  gl.uniform3f(getUni("ChunkPosition"), 0, 0, 0);
+
+
+  const CHUNKWIDTH = 8;
+  const LAYERSIZE = CHUNKWIDTH * CHUNKWIDTH;
+  const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
+  
+  let colorData = new Float32Array(CHUNKWIDTH * CHUNKWIDTH * CHUNKWIDTH * 4);
+  
+  for (let i = 0; i < CHUNKSIZE * 4; i++) {
+    // Generate random color values between 0 and 1
+    colorData[i] = Math.random();
+    if ((i+1)%4 == 0) {
+      colorData[i] = Math.round(colorData[i]);
+    }
+  }
+
+// Create 3D texture
+let chunkDataTexture = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
+
+// Set texture parameters
+gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+
+// Fill texture with data
+gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA32F, CHUNKWIDTH, CHUNKWIDTH, CHUNKWIDTH, 0, gl.RGBA, gl.FLOAT, colorData);
+
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
+
+  gl.uniform1i(getUni("chunkData"), 0); // Texture unit 0
+
   // draw call (also configures primitives)
   gl.drawArrays(gl.TRIANGLES, 0, 3)
 }
