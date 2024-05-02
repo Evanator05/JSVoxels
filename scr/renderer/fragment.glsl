@@ -20,7 +20,7 @@ vec3 traceRay(vec2 UV) {
 
     vec3 color = vec3(0.0);
 
-    for (int i = 0; i < 80; i++) { // limit the ray to 20 steps
+    for (int i = 0; i < 1000; i++) { // limit the ray to 20 steps
         // Convert ray position to chunk-local coordinates
         vec3 chunkLocalPos = ray.position - vec3(ChunkPosition);
         
@@ -37,7 +37,7 @@ vec3 traceRay(vec2 UV) {
             }
         }
         // move ray
-        ray = march(ray, 0.2);
+        ray = march(ray, 0.025);
     }
 
     return color;
