@@ -5,6 +5,8 @@ async function getText(path) {
 async function buildFragmentShader() {
   let shader = "#version 300 es\nprecision highp float;\n";
   shader += await getText("./scr/renderer/camera.glsl");
+  shader += await getText("./scr/renderer/ray.glsl");
+  shader += await getText("./scr/renderer/random.glsl");
   shader += await getText("./scr/renderer/fragment.glsl");
   return shader;
 }
@@ -96,7 +98,7 @@ async function main() {
   );
   
   gl.uniform3f(getUni("screenSize"), 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
-  gl.uniform3f(getUni("cameraPos"), 0.0, 1.0, 3);
+  gl.uniform3f(getUni("cameraPos"), 1, -15, 0);
   gl.uniform2f(getUni("cameraRot"), 0.0, -45);
   // draw call (also configures primitives)
   gl.drawArrays(gl.TRIANGLES, 0, 3)

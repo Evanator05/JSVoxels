@@ -1,59 +1,74 @@
 out vec4 outputColor;
+uniform vec3 screenSize; // 1/width, 1/height, aspect ratio
+
+vec2 getUV() {
+    vec2 UV = gl_FragCoord.xy*screenSize.xy; // set fragcoord to screen space
+    UV = UV*2.0-1.0; // center the uv
+    UV.x *= screenSize.z; // set aspect ratio
+    return UV;
+}
 
 const int maxIterations = 80;
 const float maxDist = 10.0;
 
-uniform vec3 screenSize; // 1/width, 1/height, aspect ratio
-
-struct Ray {
-    vec3 position;
-    vec3 direction;
-    float dist;
-    int iterations;
+struct Voxel {
+    bool solid;
+    vec3 color;
 };
 
-Ray march(Ray ray, float dist) {
-    return Ray(ray.position+ray.direction*dist, ray.direction, ray.dist+dist, ray.iterations+1);
+#define CHUNKWIDTH 8
+#define LAYERSIZE CHUNKWIDTH*CHUNKWIDTH
+#define CHUNKSIZE LAYERSIZE*CHUNKWIDTH
+struct Chunk {
+    ivec3 position;
+    Voxel[CHUNKSIZE] voxels;
+};
+
+int posToChunkIndex(vec3 pos) {
+    ivec3 ipos = ivec3(floor(pos));
+    return (ipos.z*LAYERSIZE)+(ipos.y*CHUNKWIDTH)+(ipos.x);
 }
 
-float sdSphere(vec3 ray, vec3 pos, float radius) {
-    return distance(ray, pos) - radius;
+Chunk generateRandomChunk() {
+    Voxel[CHUNKSIZE] voxels; 
+    for (int i = 0; i < CHUNKSIZE; i++) {
+        voxels[i] = Voxel(bool(round(random(vec2(i)))), randomColor(vec2(i)));
+    }
+
+    return Chunk(ivec3(0), voxels);
 }
 
-float sdBox( vec3 p, vec3 b )
-{
-  vec3 q = abs(p) - b;
-  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
-}
-
-void main() {
-    vec2 UV = vec2(gl_FragCoord.x, gl_FragCoord.y)*screenSize.xy;
-    UV = UV*2.0-1.0;
-    UV.x *= screenSize.z; 
+vec3 traceRay(vec2 UV, Chunk chunk) {
+    vec3 dir = rotateVector(normalize(vec3(UV, 1.0)), cameraRot);
+    Ray ray = createRay(cameraPos, dir);
 
     vec3 color = vec3(0.0);
 
-    vec3 dir = rotateVector(normalize(vec3(UV, 1.0)), cameraRot);
+    int count = 0;
 
-    Ray ray = Ray(cameraPos, dir, 0.0, 0);
-
-    for (int i=0;i<maxIterations;i++){
-        float dist = sdBox(ray.position-vec3(2.0, -2.0, 5.0), vec3(1.0));
-        
-        if (dist < 0.00001) {
-            color = vec3(1.0);
+    while (count < maxIterations) {
+        Voxel voxel = chunk.voxels[posToChunkIndex(ray.position)];
+        if (voxel.solid) {
+            ray.hit = true;
+            color = voxel.color;
             break;
         }
-
-        ray = march(ray, dist);
         
-        if (ray.dist > maxDist) {
-            break;
-        }
+        ray = march(ray, 0.2);
+        count++;
     }
 
-    float depth = ray.dist/maxDist;
-    float iterations = float(ray.iterations)/float(maxIterations);
+    //Voxel voxel = chunk.voxels[posToChunkIndex(ray.position)];
+    return color;
+}
 
-    outputColor = vec4(vec3(iterations), 1.0);
+void main() {
+    
+    vec2 UV = getUV();
+
+    Chunk chunk = generateRandomChunk();
+
+    vec3 ray = traceRay(UV, chunk);
+
+    outputColor = vec4(ray, 1.0);
 }
