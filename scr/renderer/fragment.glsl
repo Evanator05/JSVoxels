@@ -1,7 +1,7 @@
 out vec4 outputColor;
 uniform vec3 screenSize; // 1/width, 1/height, aspect ratio
 uniform ivec3 ChunkPosition;
-uniform mediump sampler3D chunkData;
+uniform lowp sampler3D chunkData;
 
 vec2 getUV() {
     vec2 UV = gl_FragCoord.xy * screenSize.xy; // set fragcoord to screen space
@@ -16,10 +16,6 @@ vec2 getUV() {
 
 bool pointInBox(vec3 point, vec3 size) {
     return (point.x >= 0.0 && point.x < size.x && point.y >= 0.0 && point.y < size.y && point.z >= 0.0 && point.z < size.z);
-}
-
-bool pointInBox(ivec3 point, ivec3 size) {
-    return (point.x >= 0 && point.x < size.x && point.y >= 0 && point.y < size.y && point.z >= 0 && point.z < size.z);
 }
 
 vec3 skybox(vec3 dir) {
