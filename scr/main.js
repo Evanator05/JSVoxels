@@ -1,3 +1,6 @@
+const canvas = document.getElementById("canvas")
+const gl = canvas.getContext("webgl2");
+
 async function getText(path) {
   return (await fetch(path).then(r => r.text()))
 }
@@ -16,12 +19,10 @@ const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
 
 function buildChunk() {
   let colorData = new Float32Array(CHUNKSIZE * 4);
-
   for (let x = 0; x < CHUNKWIDTH; x++) {
     for (let y = 0; y < CHUNKWIDTH; y++) {
       for (let z = 0; z < CHUNKWIDTH; z++) {
         let index = x+(y*CHUNKWIDTH)+(z*LAYERSIZE);
-        console.log(index);
         colorData[index*4] = x/8;
         colorData[index*4+2] = y/8;
         colorData[index*4+1] = z/8;
@@ -32,11 +33,16 @@ function buildChunk() {
   return colorData;
 }
 
+function chunkFromString(string) {
+  string = string.split(",", CHUNKSIZE * 4);
+  let colorData = new Float32Array(CHUNKSIZE * 4);
+  for(let i = 0; i < CHUNKSIZE * 4; i++) {
+    colorData[i] = float(string[i]);
+  }
+}
+
 
 async function main() {
-  const canvas = document.getElementById("canvas")
-  const gl = canvas.getContext("webgl2");
-
   const triangleVerts = [
     -1, -3,// bottom left
     -1, 1, // top left
@@ -146,7 +152,27 @@ async function main() {
   gl.uniform1i(getUni("chunkData"), 0); // Texture unit 0
 
   // draw call (also configures primitives)
-  gl.drawArrays(gl.TRIANGLES, 0, 3)
+  gl.drawArrays(gl.TRIANGLES, 0, 3) 
 }
 
+function init() {
+
+}
+
+
+
 main();
+
+var lastLoop = new Date(); // last frames time
+
+var loop = function() {
+  main();
+
+  var thisLoop = new Date(); // this frames time
+  var fps = 1000 / (thisLoop - lastLoop); // calculate fps
+  lastLoop = thisLoop;
+  //console.log(fps);
+  window.requestAnimationFrame(loop,canvas);
+};
+
+window.requestAnimationFrame(loop,canvas);

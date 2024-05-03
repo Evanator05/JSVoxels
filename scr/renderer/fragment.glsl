@@ -13,6 +13,7 @@ vec2 getUV() {
 }
 
 #define CHUNKWIDTH 8
+#define INVERSECHUNKWIDTH 1.0/float(CHUNKWIDTH)
 #define LAYERSIZE (CHUNKWIDTH * CHUNKWIDTH)
 #define CHUNKSIZE (LAYERSIZE * CHUNKWIDTH)
 
@@ -27,9 +28,8 @@ vec3 skybox(vec3 dir) {
 vec3 traceRay(vec2 UV) {
     vec3 dir = rotateVector(normalize(vec3(UV, 1.0)), cameraRot);
     Ray ray = createRay(cameraPos, dir);
-
     vec3 color = skybox(dir); // make the default color the skybox
-
+    
     for (int i = 0; i < 1000; i++) { // limit the ray steps
         // Convert ray position to chunk-local coordinates
         vec3 chunkLocalPos = floor(ray.position) - vec3(ChunkPosition);
@@ -37,7 +37,7 @@ vec3 traceRay(vec2 UV) {
             if (showBoundingBox) { 
                 color = vec3(0.0);
             }
-            vec4 voxel = texture(chunkData, (chunkLocalPos / float(CHUNKWIDTH)));
+            vec4 voxel = texture(chunkData, chunkLocalPos*INVERSECHUNKWIDTH);
             bool solid = voxel.a == 1.0;
             if (solid) {
                 ray.hit = true;
@@ -48,7 +48,6 @@ vec3 traceRay(vec2 UV) {
         // move ray
         ray = march(ray, 0.025);
     }
-
     return color;
 }
 
