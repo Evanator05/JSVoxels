@@ -123,50 +123,80 @@ async function init() {
 
 async function update() {
   gl.uniform3f(getUni("screenSize"), 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
-  gl.uniform3f(getUni("cameraPos"), -2, 12, -2);
-  gl.uniform2f(getUni("cameraRot"), -45.0, -45);
-  gl.uniform3i(getUni("ChunkPosition"), 0, 0, 0);
+  gl.uniform3f(getUni("cameraPos"), camera.position.x, camera.position.y, camera.position.z);
+  gl.uniform2f(getUni("cameraRot"), camera.angle.yaw, camera.angle.pitch);
+  
 
   let colorData = buildChunk();
 
-  // Create 3D texture
-  let chunkDataTexture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
+  if (generate) {
+    gl.uniform3i(getUni("ChunkPosition"), 0, 0, 0);
 
-  // Set texture parameters
-  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+    // Create 3D texture
+    let chunkDataTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
 
-  // Fill texture with data
-  gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA32F, CHUNKWIDTH, CHUNKWIDTH, CHUNKWIDTH, 0, gl.RGBA, gl.FLOAT, colorData);
+    // Set texture parameters
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
 
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
+    // Fill texture with data
+    gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA32F, CHUNKWIDTH, CHUNKWIDTH, CHUNKWIDTH, 0, gl.RGBA, gl.FLOAT, colorData);
 
-  gl.uniform1i(getUni("chunkData"), 0); // Texture unit 0
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
+
+    gl.uniform1i(getUni("chunkData"), 0); // Texture unit 0
+    generate = false;
+  }
 }
 
 async function draw() {
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
+let generate = true;
+
+let camera = {
+  position: {
+    x: 4,
+    y: 4,
+    z: -5
+  },
+  angle: {
+    yaw: 0,
+    pitch: 0
+  }
+}
+
 async function main() {
   await init();
-
+  var time = 0.0;
+  var timer = 0.0;
   var lastLoop = new Date(); // last frames time
   var loop = function() {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
   
-    update();
-    draw();
+  update();
+  draw();
 
   var thisLoop = new Date(); // this frames time
-  var fps = 1000 / (thisLoop - lastLoop); // calculate fps
+  var delta = (thisLoop - lastLoop)/1000;
+  var fps = 1 / delta; // calculate fps
   lastLoop = thisLoop;
+
+  time += delta;
+  timer += delta;
+  if (timer > 1) {
+    generate = true;
+    timer -= 1;
+  }
+  camera.position.y = Math.sin(time)*2+4;
+  camera.position.x = Math.cos(time)*2+4;
   console.log("FPS: " + fps);
 
   window.requestAnimationFrame(loop,canvas);

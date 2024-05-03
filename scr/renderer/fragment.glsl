@@ -3,7 +3,7 @@ uniform vec3 screenSize; // 1/width, 1/height, aspect ratio
 uniform ivec3 ChunkPosition;
 uniform lowp sampler3D chunkData;
 
-bool showBoundingBox = true;
+bool showBoundingBox = false;
 
 vec2 getUV() {
     vec2 UV = gl_FragCoord.xy * screenSize.xy; // set fragcoord to screen space
