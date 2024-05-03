@@ -23,7 +23,7 @@ const CHUNKWIDTH = 8;
 const LAYERSIZE = CHUNKWIDTH * CHUNKWIDTH;
 const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
 
-function buildChunk() {
+function buildChunkXYZColors() {
   let colorData = new Float32Array(CHUNKSIZE * 4);
   for (let x = 0; x < CHUNKWIDTH; x++) {
     for (let y = 0; y < CHUNKWIDTH; y++) {
@@ -35,6 +35,18 @@ function buildChunk() {
         colorData[index*4+3] = Math.round(Math.random());
       }
     }
+  }
+  return colorData;
+}
+
+function buildChunk() {
+  let colorData = new Float32Array(CHUNKSIZE * 4);
+  for (let i = 0; i < CHUNKSIZE*4; i++) {
+    colorData[i] = Math.random();
+    if ((i+1)%4 == 0) {
+      colorData[i] = Math.round(colorData[i]);
+    }
+
   }
   return colorData;
 }
@@ -160,17 +172,21 @@ async function draw() {
 
 let generate = true;
 
-let camera = {
-  position: {
-    x: 4,
-    y: 4,
-    z: -5
-  },
-  angle: {
-    yaw: 0,
-    pitch: 0
+class Camera {
+  constructor(x, y, z, pitch, yaw) {
+    this.position = {}
+    this.angle = {}
+
+    this.position.x = x;
+    this.position.y = y;
+    this.position.z = z;
+    
+    this.angle.pitch = pitch;
+    this.angle.yaw = yaw;
   }
 }
+
+let camera = new Camera(0, 0, -4, 0, 0);
 
 async function main() {
   await init();
@@ -178,28 +194,28 @@ async function main() {
   var timer = 0.0;
   var lastLoop = new Date(); // last frames time
   var loop = function() {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
-  
-  update();
-  draw();
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    
+    update();
+    draw();
 
-  var thisLoop = new Date(); // this frames time
-  var delta = (thisLoop - lastLoop)/1000;
-  var fps = 1 / delta; // calculate fps
-  lastLoop = thisLoop;
+    var thisLoop = new Date(); // this frames time
+    var delta = (thisLoop - lastLoop)/1000;
+    var fps = 1 / delta; // calculate fps
+    lastLoop = thisLoop;
 
-  time += delta;
-  timer += delta;
-  if (timer > 1) {
-    generate = true;
-    timer -= 1;
-  }
-  camera.position.y = Math.sin(time)*2+4;
-  camera.position.x = Math.cos(time)*2+4;
-  console.log("FPS: " + fps);
+    time += delta;
+    timer += delta;
+    if (timer > 1) {
+      generate = true;
+      timer -= 1;
+    }
+    camera.position.y = Math.sin(time)*2+4;
+    camera.position.x = Math.cos(time)*2+4;
+    console.log("FPS: " + fps);
 
-  window.requestAnimationFrame(loop,canvas);
+    window.requestAnimationFrame(loop,canvas);
   };
 
   window.requestAnimationFrame(loop,canvas);
