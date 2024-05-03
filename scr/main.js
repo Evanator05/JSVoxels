@@ -16,15 +16,14 @@ const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
 
 function buildChunk() {
   let colorData = new Float32Array(CHUNKSIZE * 4);
-  
   for (let i = 0; i < CHUNKSIZE * 4; i++) {
     // Generate random color values between 0 and 1
-    colorData[i] = Math.random();
+    colorData[i] = i/(CHUNKSIZE*4);
     if ((i+1)%4 == 0) { // if on the fourth parameter (alpha) round it to 0 or 1 solid or empty
       colorData[i] = Math.round(colorData[i]);
+      colorData[i] = 1.0;
     }
   }
-
   return colorData;
 }
 
@@ -118,26 +117,23 @@ async function main() {
   gl.uniform3f(getUni("screenSize"), 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
   gl.uniform3f(getUni("cameraPos"), -2, 12, -2);
   gl.uniform2f(getUni("cameraRot"), -45.0, -45);
-  gl.uniform3f(getUni("ChunkPosition"), 0, 0, 0);
+  gl.uniform3i(getUni("ChunkPosition"), 0, 0, 0);
 
-
-  
-  
   let colorData = buildChunk();
 
-// Create 3D texture
-let chunkDataTexture = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
+  // Create 3D texture
+  let chunkDataTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
 
-// Set texture parameters
-gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+  // Set texture parameters
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
 
-// Fill texture with data
-gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA32F, CHUNKWIDTH, CHUNKWIDTH, CHUNKWIDTH, 0, gl.RGBA, gl.FLOAT, colorData);
+  // Fill texture with data
+  gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA32F, CHUNKWIDTH, CHUNKWIDTH, CHUNKWIDTH, 0, gl.RGBA, gl.FLOAT, colorData);
 
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);

@@ -32,6 +32,7 @@ vec3 traceRay(vec2 UV) {
         // Convert ray position to chunk-local coordinates
         vec3 chunkLocalPos = floor(ray.position) - vec3(ChunkPosition);
         if (pointInBox(chunkLocalPos, vec3(CHUNKWIDTH))) {
+            color = vec3(1.0);
             vec4 voxel = texture(chunkData, (chunkLocalPos / float(CHUNKWIDTH)));
             bool solid = voxel.a == 1.0;
             if (solid) {
