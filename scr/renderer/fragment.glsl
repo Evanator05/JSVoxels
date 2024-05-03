@@ -3,6 +3,8 @@ uniform vec3 screenSize; // 1/width, 1/height, aspect ratio
 uniform ivec3 ChunkPosition;
 uniform lowp sampler3D chunkData;
 
+bool showBoundingBox = true;
+
 vec2 getUV() {
     vec2 UV = gl_FragCoord.xy * screenSize.xy; // set fragcoord to screen space
     UV = UV * 2.0 - 1.0; // center the uv
@@ -32,7 +34,9 @@ vec3 traceRay(vec2 UV) {
         // Convert ray position to chunk-local coordinates
         vec3 chunkLocalPos = floor(ray.position) - vec3(ChunkPosition);
         if (pointInBox(chunkLocalPos, vec3(CHUNKWIDTH))) {
-            color = vec3(1.0);
+            if (showBoundingBox) { 
+                color = vec3(0.0);
+            }
             vec4 voxel = texture(chunkData, (chunkLocalPos / float(CHUNKWIDTH)));
             bool solid = voxel.a == 1.0;
             if (solid) {

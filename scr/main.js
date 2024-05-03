@@ -16,12 +16,17 @@ const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
 
 function buildChunk() {
   let colorData = new Float32Array(CHUNKSIZE * 4);
-  for (let i = 0; i < CHUNKSIZE * 4; i++) {
-    // Generate random color values between 0 and 1
-    colorData[i] = i/(CHUNKSIZE*4);
-    if ((i+1)%4 == 0) { // if on the fourth parameter (alpha) round it to 0 or 1 solid or empty
-      colorData[i] = Math.round(colorData[i]);
-      colorData[i] = 1.0;
+
+  for (let x = 0; x < CHUNKWIDTH; x++) {
+    for (let y = 0; y < CHUNKWIDTH; y++) {
+      for (let z = 0; z < CHUNKWIDTH; z++) {
+        let index = x+(y*CHUNKWIDTH)+(z*LAYERSIZE);
+        console.log(index);
+        colorData[index*4] = x/8;
+        colorData[index*4+1] = y/8;
+        colorData[index*4+2] = z/8;
+        colorData[index*4+3] = Math.round(Math.random());
+      }
     }
   }
   return colorData;
