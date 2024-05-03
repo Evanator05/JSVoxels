@@ -10,7 +10,23 @@ async function buildFragmentShader() {
   shader += await getText("./scr/renderer/fragment.glsl");
   return shader;
 }
+const CHUNKWIDTH = 8;
+const LAYERSIZE = CHUNKWIDTH * CHUNKWIDTH;
+const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
 
+function buildChunk() {
+  let colorData = new Float32Array(CHUNKSIZE * 4);
+  
+  for (let i = 0; i < CHUNKSIZE * 4; i++) {
+    // Generate random color values between 0 and 1
+    colorData[i] = Math.random();
+    if ((i+1)%4 == 0) { // if on the fourth parameter (alpha) round it to 0 or 1 solid or empty
+      colorData[i] = Math.round(colorData[i]);
+    }
+  }
+
+  return colorData;
+}
 
 
 async function main() {
@@ -105,19 +121,9 @@ async function main() {
   gl.uniform3f(getUni("ChunkPosition"), 0, 0, 0);
 
 
-  const CHUNKWIDTH = 8;
-  const LAYERSIZE = CHUNKWIDTH * CHUNKWIDTH;
-  const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
   
-  let colorData = new Float32Array(CHUNKWIDTH * CHUNKWIDTH * CHUNKWIDTH * 4);
   
-  for (let i = 0; i < CHUNKSIZE * 4; i++) {
-    // Generate random color values between 0 and 1
-    colorData[i] = Math.random();
-    if ((i+1)%4 == 0) {
-      colorData[i] = Math.round(colorData[i]);
-    }
-  }
+  let colorData = buildChunk();
 
 // Create 3D texture
 let chunkDataTexture = gl.createTexture();

@@ -14,20 +14,28 @@ vec2 getUV() {
 #define LAYERSIZE (CHUNKWIDTH * CHUNKWIDTH)
 #define CHUNKSIZE (LAYERSIZE * CHUNKWIDTH)
 
+bool pointInBox(vec3 point, vec3 size) {
+    return (point.x >= 0.0 && point.x < size.x && point.y >= 0.0 && point.y < size.y && point.z >= 0.0 && point.z < size.z);
+}
+
+bool pointInBox(ivec3 point, ivec3 size) {
+    return (point.x >= 0 && point.x < size.x && point.y >= 0 && point.y < size.y && point.z >= 0 && point.z < size.z);
+}
+
+vec3 skybox(vec3 dir) {
+    return dir;
+}
+
 vec3 traceRay(vec2 UV) {
     vec3 dir = rotateVector(normalize(vec3(UV, 1.0)), cameraRot);
     Ray ray = createRay(cameraPos, dir);
 
-    vec3 color = vec3(0.0);
+    vec3 color = skybox(dir); // make the default color the skybox
 
-    for (int i = 0; i < 1000; i++) { // limit the ray to 20 steps
+    for (int i = 0; i < 1000; i++) { // limit the ray steps
         // Convert ray position to chunk-local coordinates
-        vec3 chunkLocalPos = ray.position - vec3(ChunkPosition);
-        
-        ivec3 ipos = ivec3(chunkLocalPos);
-        if (ipos.x >= 0 && ipos.x < CHUNKWIDTH && // if the ray is inside the chunk then check collisions
-            ipos.y >= 0 && ipos.y < CHUNKWIDTH &&
-            ipos.z >= 0 && ipos.z < CHUNKWIDTH) {
+        vec3 chunkLocalPos = floor(ray.position) - vec3(ChunkPosition);
+        if (pointInBox(chunkLocalPos, vec3(CHUNKWIDTH))) {
             vec4 voxel = texture(chunkData, (chunkLocalPos / float(CHUNKWIDTH)));
             bool solid = voxel.a == 1.0;
             if (solid) {
