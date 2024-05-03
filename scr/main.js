@@ -1,5 +1,10 @@
 const canvas = document.getElementById("canvas")
 const gl = canvas.getContext("webgl2");
+let mainShaderProgram;
+
+function getUni(uniform) {
+  return gl.getUniformLocation(mainShaderProgram, uniform)
+}
 
 async function getText(path) {
   return (await fetch(path).then(r => r.text()))
@@ -13,6 +18,7 @@ async function buildFragmentShader() {
   shader += await getText("./scr/renderer/fragment.glsl");
   return shader;
 }
+
 const CHUNKWIDTH = 8;
 const LAYERSIZE = CHUNKWIDTH * CHUNKWIDTH;
 const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
@@ -41,8 +47,7 @@ function chunkFromString(string) {
   }
 }
 
-
-async function main() {
+async function init() {
   const triangleVerts = [
     -1, -3,// bottom left
     -1, 1, // top left
@@ -74,7 +79,7 @@ async function main() {
   const fragmentShaderSource = await buildFragmentShader();
   const fragmentShader = await compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
   
-  const mainShaderProgram = gl.createProgram();
+  mainShaderProgram = gl.createProgram();
   gl.attachShader(mainShaderProgram, vertexShader);
   gl.attachShader(mainShaderProgram, fragmentShader);
   gl.linkProgram(mainShaderProgram);
@@ -90,17 +95,7 @@ async function main() {
     console.log("Failed to get attrib location for vertexPosition");
     return;
   }
-
-  const screenSizeUniformLocation = gl.getUniformLocation(mainShaderProgram, "screenSize");
-  if (screenSizeUniformLocation < 0) {
-    console.log("Failed to get uniform location for screenSize");
-    return;
-  }
   
-  function getUni(uniform) {
-    return gl.getUniformLocation(mainShaderProgram, uniform)
-  }
-
   // Output merger
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
@@ -124,7 +119,9 @@ async function main() {
     2*Float32Array.BYTES_PER_ELEMENT, // how many bytes forward do we skip before we get the next position in buffer (0 makes gpu figure it out)
     0 // how many bytes do we skip before reading attib
   );
-  
+}
+
+async function update() {
   gl.uniform3f(getUni("screenSize"), 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
   gl.uniform3f(getUni("cameraPos"), -2, 12, -2);
   gl.uniform2f(getUni("cameraRot"), -45.0, -45);
@@ -150,29 +147,32 @@ async function main() {
   gl.bindTexture(gl.TEXTURE_3D, chunkDataTexture);
 
   gl.uniform1i(getUni("chunkData"), 0); // Texture unit 0
-
-  // draw call (also configures primitives)
-  gl.drawArrays(gl.TRIANGLES, 0, 3) 
 }
 
-function init() {
-
+async function draw() {
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
+async function main() {
+  await init();
 
-
-main();
-
-var lastLoop = new Date(); // last frames time
-
-var loop = function() {
-  main();
+  var lastLoop = new Date(); // last frames time
+  var loop = function() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+  
+    update();
+    draw();
 
   var thisLoop = new Date(); // this frames time
   var fps = 1000 / (thisLoop - lastLoop); // calculate fps
   lastLoop = thisLoop;
-  //console.log(fps);
-  window.requestAnimationFrame(loop,canvas);
-};
+  console.log("FPS: " + fps);
 
-window.requestAnimationFrame(loop,canvas);
+  window.requestAnimationFrame(loop,canvas);
+  };
+
+  window.requestAnimationFrame(loop,canvas);
+}
+
+main();
