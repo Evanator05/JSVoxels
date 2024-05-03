@@ -23,8 +23,8 @@ function buildChunk() {
         let index = x+(y*CHUNKWIDTH)+(z*LAYERSIZE);
         console.log(index);
         colorData[index*4] = x/8;
-        colorData[index*4+1] = y/8;
-        colorData[index*4+2] = z/8;
+        colorData[index*4+2] = y/8;
+        colorData[index*4+1] = z/8;
         colorData[index*4+3] = Math.round(Math.random());
       }
     }
