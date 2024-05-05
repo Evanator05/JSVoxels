@@ -21,7 +21,7 @@ async function buildFragmentShader() {
   for (const s of shaders) {
     shader += await getText(s);
   }
-
+  console.log(shader);
   return shader;
 }
 
@@ -52,7 +52,6 @@ function buildChunk() {
     if ((i+1)%4 == 0) {
       colorData[i] = Math.round(colorData[i]);
     }
-
   }
   return colorData;
 }
@@ -143,7 +142,7 @@ async function update() {
   gl.uniform3f(getUni("cameraPos"), camera.position.x, camera.position.y, camera.position.z);
   gl.uniform2f(getUni("cameraRot"), camera.angle.yaw, camera.angle.pitch);
   gl.uniform1f(getUni("time"), time);
-
+  gl.uniform1i(getUni("renderMode"), renderMode);
   let colorData = buildChunk();
 
   if (generate) {
@@ -191,8 +190,10 @@ class Camera {
   }
 }
 
-let camera = new Camera(6, 4, -4, 0, 0);
+var camera = new Camera(6, 4, -4, 0, 0);
 var time = 0.0;
+var renderMode = 0;
+
 async function main() {
   await init();
   
@@ -245,9 +246,24 @@ async function main() {
       camera.angle.yaw -= delta*cameraSense;
     }
 
-    if (isPressed("b")) {
+    if (justPressed("b")) {
       generate = true;
     }
+
+    if (isPressed("1")) {
+      renderMode = 0;
+    }
+    if (isPressed("2")) {
+      renderMode = 1;
+    }
+    if (isPressed("3")) {
+      renderMode = 2;
+    }
+    if (isPressed("4")) {
+      renderMode = 3;
+    }
+
+    updateJustPressed();
 
     window.requestAnimationFrame(loop,canvas);
   };
@@ -258,15 +274,32 @@ var keystate = {}
 var cameraSense = 120;
 var cameraSpeed = 8;
 document.addEventListener("keydown", function(evt) {
-  keystate[evt.key] = true;
+  keystate[evt.key] = {
+    pressed: true,
+    justPressed: true
+  };
 });
 
 document.addEventListener("keyup", function(evt) {
-  keystate[evt.key] = false;
+  keystate[evt.key] = {
+    pressed: false,
+    justPressed: false
+  };
 });
 
 function isPressed(key) {
-  return keystate[key];
+  if (!keystate[key]) return false;
+  return keystate[key].pressed;
+}
+function justPressed(key) {
+  if (!keystate[key]) return false;
+  return keystate[key].justPressed;
+}
+
+function updateJustPressed() {
+  for (const key of Object.keys(keystate)) {
+    keystate[key].justPressed = false;
+  }
 }
 
 main();

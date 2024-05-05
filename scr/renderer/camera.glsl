@@ -1,5 +1,3 @@
-uniform vec2 cameraRot;
-uniform vec3 cameraPos;
 
 vec3 rotateVector(vec3 v, vec2 a) {
 	float pitchRad = radians(a.y);

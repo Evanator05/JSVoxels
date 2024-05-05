@@ -1,3 +1,4 @@
+
 #define CHUNKWIDTH 32
 #define LAYERSIZE (CHUNKWIDTH * CHUNKWIDTH)
 #define CHUNKSIZE (LAYERSIZE * CHUNKWIDTH)
@@ -38,11 +39,14 @@ vec3[MAX_VOXELS] DDAVoxels(vec3 rayOrigin, vec3 rayDirection) {
 struct Hit {
     vec3 color;
     vec3 normal;
+    int steps;
     bool hit;
 };
+
 Hit createHit() {
-    return Hit(vec3(0.0), vec3(0.0), false);
+    return Hit(vec3(0.0), vec3(0.0), MAX_VOXELS, false);
 }
+
 Hit traceRay(vec2 UV) {
     Hit hit = createHit();
 
@@ -61,6 +65,7 @@ Hit traceRay(vec2 UV) {
                 hit.color = voxel.rgb;
                 hit.normal = sign(lastPos-pos);
                 hit.hit = true;
+                hit.steps = i;
                 break;
             }
         }
@@ -74,5 +79,21 @@ Hit traceRay(vec2 UV) {
 void main() {
     vec2 UV = getUV();
     Hit hit = traceRay(UV);
-    outputColor = vec4(hit.color, 1.0);
+    
+    vec3 color = vec3(0.0);
+    switch(renderMode) {
+        case 0:
+            color = hit.color;
+            break;
+        case 1:
+            color = abs(hit.normal);
+            break;
+        case 2:
+            color = vec3(float(hit.steps)/float(MAX_VOXELS)), 1.0;
+            break;
+        case 3:
+            color = vec3(hit.hit);
+            break;
+    };
+    outputColor = vec4(color, 1.0);
 }
