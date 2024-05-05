@@ -238,6 +238,10 @@ async function main() {
       camera.angle.yaw -= delta*cameraSense;
     }
 
+    if (isPressed("b")) {
+      generate = true;
+    }
+
     window.requestAnimationFrame(loop,canvas);
   };
 
