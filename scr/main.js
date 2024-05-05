@@ -67,7 +67,6 @@ async function init() {
   ];
   
   const triangleCPUBuffer = new Float32Array(triangleVerts);
-
   const triangleGPUBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, triangleGPUBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, triangleCPUBuffer, gl.STATIC_DRAW);
@@ -101,13 +100,13 @@ async function init() {
     console.log(linkError);
     return;
   }
-
+  
   const vertexPositionAttribLocation = gl.getAttribLocation(mainShaderProgram, "vertexPosition");
   if (vertexPositionAttribLocation < 0) {
     console.log("Failed to get attrib location for vertexPosition");
     return;
   }
-  
+
   // Output merger
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
@@ -186,12 +185,11 @@ class Camera {
   }
 }
 
-let camera = new Camera(0, 0, -4, 0, 0);
+let camera = new Camera(6, 4, -4, 0, 0);
 
 async function main() {
   await init();
   var time = 0.0;
-  var timer = 0.0;
   var lastLoop = new Date(); // last frames time
   var loop = function() {
     canvas.width = canvas.clientWidth;
@@ -206,19 +204,60 @@ async function main() {
     lastLoop = thisLoop;
 
     time += delta;
-    timer += delta;
-    if (timer > 1) {
-      generate = true;
-      timer -= 1;
+
+    //console.log("FPS: " + fps);
+    if (isPressed("w")) {
+      camera.position.z += delta*cameraSpeed;
     }
-    camera.position.y = Math.sin(time)*2+4;
-    camera.position.x = Math.cos(time)*2+4;
-    console.log("FPS: " + fps);
+    if (isPressed("a")) {
+      camera.position.x -= delta*cameraSpeed;
+    }
+    if (isPressed("s")) {
+      camera.position.z -= delta*cameraSpeed;
+    }
+    if (isPressed("d")) {
+      camera.position.x += delta*cameraSpeed;
+    }
+    if (isPressed("q")) {
+      camera.position.y -= delta*cameraSpeed;
+    }
+    if (isPressed("e")) {
+      camera.position.y += delta*cameraSpeed;
+    }
+
+    if (isPressed("i")) {
+      camera.angle.pitch += delta*cameraSense;
+    }
+    if (isPressed("j")) {
+      camera.angle.yaw += delta*cameraSense;
+    }
+    if (isPressed("k")) {
+      camera.angle.pitch -= delta*cameraSense;
+    }
+    if (isPressed("l")) {
+      camera.angle.yaw -= delta*cameraSense;
+    }
 
     window.requestAnimationFrame(loop,canvas);
   };
 
   window.requestAnimationFrame(loop,canvas);
 }
+
+var keystate = {}
+var cameraSense = 90;
+var cameraSpeed = 8;
+document.addEventListener("keydown", function(evt) {
+  keystate[evt.key] = true;
+});
+
+document.addEventListener("keyup", function(evt) {
+  keystate[evt.key] = false;
+});
+
+function isPressed(key) {
+  return keystate[key];
+}
+
 
 main();
