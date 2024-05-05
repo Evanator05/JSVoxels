@@ -12,9 +12,11 @@ async function getText(path) {
 
 async function buildFragmentShader() {
   let shader = "#version 300 es\nprecision highp float;\n";
+  shader += await getText("./scr/renderer/uniforms.glsl");
   shader += await getText("./scr/renderer/camera.glsl");
   shader += await getText("./scr/renderer/ray.glsl");
   shader += await getText("./scr/renderer/random.glsl");
+  shader += await getText("./scr/renderer/sky.glsl");
   shader += await getText("./scr/renderer/fragment.glsl");
   return shader;
 }
@@ -136,7 +138,7 @@ async function update() {
   gl.uniform3f(getUni("screenSize"), 1/canvas.width, 1/canvas.height, canvas.width/canvas.height); // give fragment shader the screensize and aspect ratio (doing 1/size so we dont have to divide on the gpu)
   gl.uniform3f(getUni("cameraPos"), camera.position.x, camera.position.y, camera.position.z);
   gl.uniform2f(getUni("cameraRot"), camera.angle.yaw, camera.angle.pitch);
-  
+  gl.uniform1f(getUni("time"), time);
 
   let colorData = buildChunk();
 
@@ -186,10 +188,10 @@ class Camera {
 }
 
 let camera = new Camera(6, 4, -4, 0, 0);
-
+var time = 0.0;
 async function main() {
   await init();
-  var time = 0.0;
+  
   var lastLoop = new Date(); // last frames time
   var loop = function() {
     canvas.width = canvas.clientWidth;
@@ -249,7 +251,7 @@ async function main() {
 }
 
 var keystate = {}
-var cameraSense = 90;
+var cameraSense = 120;
 var cameraSpeed = 8;
 document.addEventListener("keydown", function(evt) {
   keystate[evt.key] = true;
