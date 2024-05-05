@@ -214,53 +214,25 @@ async function main() {
 
     time += delta;
     
-    if (isPressed("w")) {
-      camera.position.z += delta*cameraSpeed;
-    }
-    if (isPressed("a")) {
-      camera.position.x -= delta*cameraSpeed;
-    }
-    if (isPressed("s")) {
-      camera.position.z -= delta*cameraSpeed;
-    }
-    if (isPressed("d")) {
-      camera.position.x += delta*cameraSpeed;
-    }
-    if (isPressed("q")) {
-      camera.position.y -= delta*cameraSpeed;
-    }
-    if (isPressed("e")) {
-      camera.position.y += delta*cameraSpeed;
-    }
+    const forwardDir = isPressed("w") - isPressed("s");
+    camera.position.z += delta*cameraSpeed*forwardDir;
+    const horizontalDir = isPressed("d") - isPressed("a");
+    camera.position.x += delta*cameraSpeed*horizontalDir;
+    const yDir = isPressed("e") - isPressed("q");
+    camera.position.y += delta*cameraSpeed*yDir;
 
-    if (isPressed("i")) {
-      camera.angle.pitch += delta*cameraSense;
-    }
-    if (isPressed("j")) {
-      camera.angle.yaw += delta*cameraSense;
-    }
-    if (isPressed("k")) {
-      camera.angle.pitch -= delta*cameraSense;
-    }
-    if (isPressed("l")) {
-      camera.angle.yaw -= delta*cameraSense;
-    }
+    const pitchDir = isPressed("i") - isPressed("k");
+    camera.angle.pitch += delta*cameraSense*pitchDir;
+    const yawDir = isPressed("j") - isPressed("l");
+    camera.angle.yaw += delta*cameraSense*yawDir;
 
     if (justPressed("b")) {
       generate = true;
     }
-
-    if (isPressed("1")) {
-      renderMode = 0;
-    }
-    if (isPressed("2")) {
-      renderMode = 1;
-    }
-    if (isPressed("3")) {
-      renderMode = 2;
-    }
-    if (isPressed("4")) {
-      renderMode = 3;
+    for(var i = 0; i < 4; i++) {
+      if (isPressed(i+1)) {
+        renderMode = i;
+      }
     }
 
     updateJustPressed();
