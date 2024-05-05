@@ -11,13 +11,17 @@ async function getText(path) {
 }
 
 async function buildFragmentShader() {
+  const shaders = ["./scr/renderer/uniforms.glsl", 
+               "./scr/renderer/camera.glsl", 
+               "./scr/renderer/ray.glsl", 
+               "./scr/renderer/sky.glsl", 
+               "./scr/renderer/fragment.glsl"]
+
   let shader = "#version 300 es\nprecision highp float;\n";
-  shader += await getText("./scr/renderer/uniforms.glsl");
-  shader += await getText("./scr/renderer/camera.glsl");
-  shader += await getText("./scr/renderer/ray.glsl");
-  shader += await getText("./scr/renderer/random.glsl");
-  shader += await getText("./scr/renderer/sky.glsl");
-  shader += await getText("./scr/renderer/fragment.glsl");
+  for (const s of shaders) {
+    shader += await getText(s);
+  }
+  console.log(shader);
   return shader;
 }
 
