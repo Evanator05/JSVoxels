@@ -21,11 +21,11 @@ async function buildFragmentShader() {
   for (const s of shaders) {
     shader += await getText(s);
   }
-  console.log(shader);
+
   return shader;
 }
 
-const CHUNKWIDTH = 8;
+const CHUNKWIDTH = 32;
 const LAYERSIZE = CHUNKWIDTH * CHUNKWIDTH;
 const CHUNKSIZE = LAYERSIZE * CHUNKWIDTH;
 
@@ -204,14 +204,15 @@ async function main() {
     update();
     draw();
 
-    var thisLoop = new Date(); // this frames time
+    var thisLoop = new Date();
     var delta = (thisLoop - lastLoop)/1000;
-    var fps = 1 / delta; // calculate fps
     lastLoop = thisLoop;
 
-    time += delta;
-
+    //var fps = 1 / delta; // calculate fps
     //console.log("FPS: " + fps);
+
+    time += delta;
+    
     if (isPressed("w")) {
       camera.position.z += delta*cameraSpeed;
     }
@@ -250,7 +251,6 @@ async function main() {
 
     window.requestAnimationFrame(loop,canvas);
   };
-
   window.requestAnimationFrame(loop,canvas);
 }
 
@@ -268,6 +268,5 @@ document.addEventListener("keyup", function(evt) {
 function isPressed(key) {
   return keystate[key];
 }
-
 
 main();
