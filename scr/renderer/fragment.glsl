@@ -28,7 +28,7 @@ vec3[MAX_VOXELS] DDAVoxels(vec3 rayOrigin, vec3 rayDirection) {
     vec3 point = floor(rayOrigin);
     vec3[MAX_VOXELS] points;
     for (int i = 0; i < MAX_VOXELS; i++) {
-        points[i] = point;
+        points[i] = round(point);
         vec3 select = step(tMax, tMax.yzx) * step(tMax, tMax.zxy);
         tMax += select*delta;
         point += select*steps;
@@ -83,7 +83,9 @@ void main() {
     vec3 color = vec3(0.0);
     switch(renderMode) {
         case 0:
-            color = hit.color;
+            float lighting = dot(hit.normal, (normalize(vec3(.4, .5, .6))));
+            lighting = max(lighting, 0.2);
+            color = hit.color*lighting;
             break;
         case 1:
             color = abs(hit.normal);

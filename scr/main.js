@@ -178,13 +178,8 @@ let generate = true;
 
 class Camera {
   constructor(x, y, z, pitch, yaw) {
-    this.position = {}
+    this.position = new Vector3(x, y, z);
     this.angle = {}
-
-    this.position.x = x;
-    this.position.y = y;
-    this.position.z = z;
-    
     this.angle.pitch = pitch;
     this.angle.yaw = yaw;
   }
@@ -199,12 +194,6 @@ async function main() {
   
   var lastLoop = new Date(); // last frames time
   var loop = function() {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-    
-    update();
-    draw();
-
     var thisLoop = new Date();
     var delta = (thisLoop - lastLoop)/1000;
     lastLoop = thisLoop;
@@ -214,12 +203,9 @@ async function main() {
 
     time += delta;
     
-    const forwardDir = isPressed("w") - isPressed("s");
-    camera.position.z += delta*cameraSpeed*forwardDir;
-    const horizontalDir = isPressed("d") - isPressed("a");
-    camera.position.x += delta*cameraSpeed*horizontalDir;
-    const yDir = isPressed("e") - isPressed("q");
-    camera.position.y += delta*cameraSpeed*yDir;
+    var velocity = new Vector3(isPressed("d") - isPressed("a"), isPressed("e") - isPressed("q"), isPressed("w") - isPressed("s"));
+    velocity = velocity.rotateY(-camera.angle.yaw).multiply(delta).multiply(cameraSpeed);
+    camera.position = camera.position.add(velocity);
 
     const pitchDir = isPressed("i") - isPressed("k");
     camera.angle.pitch += delta*cameraSense*pitchDir;
@@ -237,6 +223,8 @@ async function main() {
 
     updateJustPressed();
 
+    update();
+    draw();
     window.requestAnimationFrame(loop,canvas);
   };
   window.requestAnimationFrame(loop,canvas);
